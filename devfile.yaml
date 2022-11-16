@@ -5,8 +5,13 @@ commands:
     workingDir: ${PROJECT_SOURCE}/saga
     group:
       kind: build
-      isDefault: true
+      #isDefault: true
   id: build-saga
+- apply:
+    component: saga-route
+    group:
+      kind: build
+  id: add-saga-route
 - exec:
     commandLine: java -Dserver.port=8084 -jar saga-app/target/*.jar
     component: saga-app
@@ -40,6 +45,14 @@ commands:
 #      kind: test
 #      isDefault: true
 #  id: execute-app
+- id: build-microservices
+  composite:
+    group:
+      kind: build
+      isDefault: true
+    commands:
+      - build-saga
+      - add-saga-route
 - id: start-microservices
   composite:
     group:
@@ -89,6 +102,7 @@ components:
       exposure: public
       secure: false
       path: "/"
+      protocol: http
     - exposure: none
       name: debug-app
       targetPort: 5858
@@ -106,6 +120,7 @@ components:
     endpoints:
       - name: saga-payment
         targetPort: 8081
+        exposure: none
       - exposure: none
         name: debug-payment
         targetPort: 5859
@@ -123,6 +138,7 @@ components:
     endpoints:
       - name: saga-flight
         targetPort: 8082
+        exposure: none
       - exposure: none
         name: debug-flight
         targetPort: 5860
@@ -140,6 +156,7 @@ components:
     endpoints:
       - name: saga-train
         targetPort: 8083
+        exposure: none
       - exposure: none
         name: debug-train
         targetPort: 5861
@@ -153,6 +170,20 @@ components:
       - name: m2
         path: /home/user/.m2
   name: saga-train
+- name: saga-route
+  kubernetes:
+    inlined: |
+      kind: Route
+      apiVersion: route.openshift.io/v1
+      metadata:
+        name: saga
+      spec:
+        path: /
+        to:
+          kind: Service
+          name: camel-example-spring-boot-saga-app
+        port:
+          targetPort: saga-app
 - name: m2
   volume: {}
 - name: lra-data
@@ -168,4 +199,11 @@ metadata:
   - Java
   - Maven
   version: 1.2.0
-schemaVersion: 2.1.0
+schemaVersion: 2.2.0
+starterProjects:
+- git:
+    remotes:
+      origin: https://github.com/mcarlett/camel-spring-boot-examples.git
+    checkoutFrom:
+      revision: saga-devfile
+  name: saga-camel-spring-boot-examples
