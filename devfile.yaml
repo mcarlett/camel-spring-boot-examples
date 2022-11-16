@@ -1,0 +1,171 @@
+commands:
+- exec:
+    commandLine: mvn -Dmaven.repo.local=/home/user/.m2/repository package
+    component: saga-app
+    workingDir: ${PROJECT_SOURCE}/saga
+    group:
+      kind: build
+      isDefault: true
+  id: build-saga
+- exec:
+    commandLine: java -Dserver.port=8084 -jar saga-app/target/*.jar
+    component: saga-app
+    workingDir: ${PROJECT_SOURCE}/saga
+    hotReloadCapable: false
+  id: run-saga-app
+- exec:
+    commandLine: java -Dserver.port=8082 -jar saga-flight-service/target/*.jar
+    component: saga-flight
+    workingDir: ${PROJECT_SOURCE}/saga
+    hotReloadCapable: false
+  id: run-saga-flight-service
+- exec:
+    commandLine: java -Dserver.port=8081 -jar saga-payment-service/target/*.jar
+    component: saga-payment
+    workingDir: ${PROJECT_SOURCE}/saga
+    hotReloadCapable: false
+  id: run-saga-payment-service
+- exec:
+    commandLine: java -Dserver.port=8083 -jar saga-train-service/target/*.jar
+    component: saga-train
+    workingDir: ${PROJECT_SOURCE}/saga
+    hotReloadCapable: false
+  id: run-saga-train-service
+#- exec:
+#    commandLine: curl -X POST http://localhost:8084/api/saga?id=$RANDOM
+#    component: int-test
+#    workingDir: /tmp
+#    hotReloadCapable: true
+#    group:
+#      kind: test
+#      isDefault: true
+#  id: execute-app
+- id: start-microservices
+  composite:
+    group:
+      kind: run
+      isDefault: true
+    commands:
+      - run-saga-payment-service
+      - run-saga-train-service
+      - run-saga-flight-service
+      - run-saga-app
+components:
+#- name: int-test
+#  container:
+#    image: registry.redhat.io/ubi8-micro:latest
+#    memoryLimit: 256Mi
+#    mountSources: false
+- name: lra-coordinator
+  container:
+    image: quay.io/jbosstm/lra-coordinator:latest
+    memoryLimit: 512Mi
+    mountSources: false
+    endpoints:
+      - name: lra-coordinator
+        targetPort: 8080
+    volumeMounts:
+      - name: lra-data
+        path: /home/jboss/ObjectStore/ShadowNoFileLockStore/defaultStore
+- name: amq
+  container:
+    image: registry.redhat.io/amq7/amq-broker-rhel8:7.10
+    memoryLimit: 512Mi
+    mountSources: false
+    endpoints:
+      - name: amq-broker
+        targetPort: 61616
+    env:
+      - name: AMQ_USER
+        value: "admin"
+      - name: AMQ_PASSWORD
+        value: "admin"
+      - name: AMQ_REQUIRE_LOGIN
+        value: "true"
+- container:
+    endpoints:
+    - name: saga-app
+      targetPort: 8084
+      exposure: public
+      secure: false
+      path: "/"
+    - exposure: none
+      name: debug-app
+      targetPort: 5858
+    env:
+    - name: DEBUG_PORT
+      value: "5858"
+    image: quay.io/eclipse/che-java11-maven:next
+    memoryLimit: 1024Mi
+    mountSources: true
+    volumeMounts:
+    - name: m2
+      path: /home/user/.m2
+  name: saga-app
+- container:
+    endpoints:
+      - name: saga-payment
+        targetPort: 8081
+      - exposure: none
+        name: debug-payment
+        targetPort: 5859
+    env:
+      - name: DEBUG_PORT
+        value: "5859"
+    image: quay.io/eclipse/che-java11-maven:next
+    memoryLimit: 1024Mi
+    mountSources: true
+    volumeMounts:
+      - name: m2
+        path: /home/user/.m2
+  name: saga-payment
+- container:
+    endpoints:
+      - name: saga-flight
+        targetPort: 8082
+      - exposure: none
+        name: debug-flight
+        targetPort: 5860
+    env:
+      - name: DEBUG_PORT
+        value: "5858"
+    image: quay.io/eclipse/che-java11-maven:next
+    memoryLimit: 1024Mi
+    mountSources: true
+    volumeMounts:
+      - name: m2
+        path: /home/user/.m2
+  name: saga-flight
+- container:
+    endpoints:
+      - name: saga-train
+        targetPort: 8083
+      - exposure: none
+        name: debug-train
+        targetPort: 5861
+    env:
+      - name: DEBUG_PORT
+        value: "5858"
+    image: quay.io/eclipse/che-java11-maven:next
+    memoryLimit: 1024Mi
+    mountSources: true
+    volumeMounts:
+      - name: m2
+        path: /home/user/.m2
+  name: saga-train
+- name: m2
+  volume: {}
+- name: lra-data
+  volume: {}
+metadata:
+  description: Upstream Maven and OpenJDK 11
+  displayName: Maven Java
+  icon: https://raw.githubusercontent.com/devfile-samples/devfile-stack-icons/main/java-maven.jpg
+  language: Java
+  name: camel-example-spring-boot-saga
+  projectType: Maven
+  tags:
+  - Java
+  - Maven
+  version: 1.2.0
+schemaVersion: 2.1.0
