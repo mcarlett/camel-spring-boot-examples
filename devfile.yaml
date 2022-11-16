@@ -5,13 +5,8 @@ commands:
     workingDir: ${PROJECT_SOURCE}/saga
     group:
       kind: build
-      #isDefault: true
+      isDefault: true
   id: build-saga
-- apply:
-    component: saga-route
-    group:
-      kind: build
-  id: add-saga-route
 - exec:
     commandLine: java -Dserver.port=8084 -jar saga-app/target/*.jar
     component: saga-app
@@ -36,23 +31,11 @@ commands:
     workingDir: ${PROJECT_SOURCE}/saga
     hotReloadCapable: false
   id: run-saga-train-service
-#- exec:
-#    commandLine: curl -X POST http://localhost:8084/api/saga?id=$RANDOM
-#    component: int-test
-#    workingDir: /tmp
-#    hotReloadCapable: true
-#    group:
-#      kind: test
-#      isDefault: true
-#  id: execute-app
-- id: build-microservices
-  composite:
-    group:
-      kind: build
-      isDefault: true
-    commands:
-      - build-saga
-      - add-saga-route
+- exec:
+    commandLine: "while true; do curl -s -X POST http://localhost:8084/api/saga?id=$RANDOM; sleep 5; done"
+    component: client
+    hotReloadCapable: false
+  id: client-exec
 - id: start-microservices
   composite:
     group:
@@ -63,12 +46,13 @@ commands:
       - run-saga-train-service
       - run-saga-flight-service
       - run-saga-app
+      - client-exec
 components:
-#- name: int-test
-#  container:
-#    image: registry.redhat.io/ubi8-micro:latest
-#    memoryLimit: 256Mi
-#    mountSources: false
+- name: client
+  container:
+    image: registry.redhat.io/ubi8-minimal:latest
+    memoryLimit: 256Mi
+    mountSources: false
 - name: lra-coordinator
   container:
     image: quay.io/jbosstm/lra-coordinator:latest
@@ -170,20 +154,6 @@ components:
       - name: m2
         path: /home/user/.m2
   name: saga-train
-- name: saga-route
-  kubernetes:
-    inlined: |
-      kind: Route
-      apiVersion: route.openshift.io/v1
-      metadata:
-        name: saga
-      spec:
-        path: /
-        to:
-          kind: Service
-          name: camel-example-spring-boot-saga-app
-        port:
-          targetPort: saga-app
 - name: m2
   volume: {}
 - name: lra-data
