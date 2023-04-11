@@ -1,0 +1,48 @@
+== Spring Boot Example with Apache CXF-RS
+
+=== Build
+
+You can build this example using:
+
+    $ mvn package
+
+=== Run
+
+You can run this example using:
+
+    $ mvn spring-boot:run
+
+After the Spring Boot application is started, you can open the following URL in your web browser to access the REST endpoint and retrieve a list of users: http://localhost:8080/services/api/users
+
+You can also access the REST endpoint from the command line:
+
+[source,text]
+----
+$ curl http://localhost:8080/services/api/user
+----
+
+The command will produce the following output:
+
+[source,json]
+----
+[ {
+  "id" : 1,
+  "name" : "John Coltrane"
+}, {
+  "id" : 2,
+  "name" : "Miles Davis"
+}, {
+  "id" : 3,
+  "name" : "Sonny Rollins"
+} ]
+----
+
+=== Help and contributions
+
+If you hit any problem using Camel or have some feedback, then please
+https://camel.apache.org/community/support/[let us know].
+
+We also love contributors, so
+https://camel.apache.org/community/contributing/[get involved] :-)
+
+The Camel riders!
