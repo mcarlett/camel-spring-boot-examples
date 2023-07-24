@@ -1,0 +1,32 @@
+== Camel Example Spring Boot and ActiveMQ
+
+This example shows how to work with a simple Apache Camel application using Spring Boot and Apache ActiveMQ.
+
+=== Preparing ActiveMQ brokers
+
+Using container with docker/podman
+
+----
+podman run --rm -d --name amq-broker \
+    -p 61616:61616 -p 8161:8161 \
+    -e AMQ_USER=admin -e AMQ_PASSWORD=admin \
+    registry.redhat.io/amq7/amq-broker-rhel8:7.11
+----
+
+The console is available at http://localhost:8161
+
+=== How to run the example
+
+You can run this example using
+
+    mvn spring-boot:run
+
+=== Help and contributions
+
+If you hit any problem using Camel or have some feedback, then please
+https://camel.apache.org/support.html[let us know].
+
+We also love contributors, so
+https://camel.apache.org/contributing.html[get involved] :-)
+
+The Camel riders!
