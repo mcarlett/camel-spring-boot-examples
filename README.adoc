@@ -15,7 +15,7 @@ to the SNAPSHOT version of the next release.
 
 To execute the examples, checkout into the tag for the latest release. For example:
 
-`$ git checkout tags/camel-spring-boot-examples-3.5.0`
+`$ git checkout tags/camel-spring-boot-examples-4.0.0`
 
 Then, install the root pom:
 
@@ -59,6 +59,8 @@ Number of Examples: 49 (0 deprecated)
 | link:routetemplate-xml/README.adoc[Routetemplate Xml] (routetemplate-xml) | Beginner | How to use route templates (parameterized routes) in XML
 
 | link:spring-boot/readme.adoc[Spring Boot] (spring-boot) | Beginner | An example showing how to work with Camel and Spring Boot
+
+| link:spring-jdbc/readme.adoc[Spring Jdbc] (spring-jdbc) | Beginner | Camel transacted routes integrating local Spring Transaction
 
 | link:type-converter/README.adoc[Type Converter] (type-converter) | Beginner | An example showing how to create custom type converter with Camel and Spring Boot
 
