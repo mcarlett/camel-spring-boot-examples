@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+
+  minio:
+    image: "quay.io/minio/minio:latest"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=admin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command:
+      - server
+      - /data
+      - --console-address
+      - :9001
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command:
+      - --config=/etc/otelcol-cont/otel-collector.yml
+    volumes:
+      - ./otel-collector.yml:/etc/otelcol-cont/otel-collector.yml
+    ports:
+      - "4318:4318" # OTLP http receiver
+
+  jaeger-all-in-one:
+    image: quay.io/jaegertracing/all-in-one:latest
+    restart: always
+    ports:
+      - "16686:16686"
