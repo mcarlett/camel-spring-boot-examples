@@ -10,10 +10,17 @@ services:
             - PROMETHEUS_SERVER_URL=http://host.docker.internal:9090
             - PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR=true
         ports:
-            - 4317:4317
-            - 4318:4318
             - 16686:16686
             - 14269:14269
+    otel-collector:
+        image: otel/opentelemetry-collector:0.128.0
+        container_name: camel_otel_collector
+        command: [ "--config=/etc/otel-collector-config.yaml" ]
+        volumes:
+            - ./docker/config/otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+        ports:
+            - 4317:4317
+            - 4318:4318
     prometheus:
         image: prom/prometheus
         container_name: camel_observation_prometheus

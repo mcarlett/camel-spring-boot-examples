@@ -1,0 +1,33 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: "0.0.0.0:4318"
+
+exporters:
+  debug:
+    verbosity: detailed
+  otlp/jaeger:
+    endpoint: 'jaeger:4317'
+    tls:
+      insecure: true
+
+processors:
+  batch:
+
+  filter/ottl:
+    error_mode: ignore
+    traces:
+      span:
+        - 'attributes["http.url"] == "/actuator/health"'
+        - 'attributes["http.url"] == "/actuator/prometheus"'
+        - 'attributes["uri"] == "/service1"'
+        - 'attributes["uri"] == "/service2"'
+
+service:
+  extensions:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, 'filter/ottl']
+      exporters: ['otlp/jaeger']
