@@ -22,6 +22,11 @@ import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.net.ConnectException;
+import java.util.Random;
+
+
 @Component
 public class MySimpleCamelRouter extends RouteBuilder {
     @Override
@@ -35,6 +40,12 @@ public class MySimpleCamelRouter extends RouteBuilder {
 
         from("direct:bookCar").routeId("bookCar-http")
                 .log(LoggingLevel.INFO, "New book car request with trace=${header.traceparent}")
+                .process(exchange -> {
+                    int random = new Random().nextInt(4320923);
+                    if ( random % 7 == 0 ){
+                        throw new ConnectException("problem to get the list of the available cars from the datastore");
+                    }
+                })
                 .bean(new AvailableCars(),"getAvailableCar")
                 .unmarshal().json(JsonLibrary.Jackson);
 
@@ -42,6 +53,12 @@ public class MySimpleCamelRouter extends RouteBuilder {
         from("kafka:car_input").routeId("bookCar-kafka")
                 .log(LoggingLevel.INFO, "New book car request via Kafka topic")
                 .bean(new AvailableCars(),"getAvailableCar")
+                .process(exchange -> {
+                    int random = new Random().nextInt(4320923);
+                    if ( random % 7 == 0 ){
+                        throw new IOException("problem to sent the result of the available cars to the broker");
+                    }
+                })
                 .to("kafka:car_output");
 
     }
